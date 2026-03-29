@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+scikit-learn==1.3.2
+pandas
+mlflow
+dvc[s3]
+boto3
+pydantic
+pytest
+httpx
