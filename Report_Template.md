@@ -24,14 +24,14 @@
 ### Table of 5 runs
 | Run | Dataset | Model | Key Parameters | Metric 1 (Accuracy) | Metric 2 (F1 Score) |
 |-----|---------|-------|----------------|---------------------|---------------------|
-| 1   | V2      | RF    | n_est=100, fs=False| (Fill after running) | (Fill after running)|
-| 2   | V2      | RF    | n_est=50, fs=False | (Fill after running) | (Fill after running)|
-| 3   | V2      | RF    | n_est=100, fs=True | (Fill after running) | (Fill after running)|
-| 4   | V2      | LR    | max_iter=1000  | (Fill after running) | (Fill after running)|
-| 5   | V1      | RF    | n_est=100, fs=False| (Fill after running) | (Fill after running)|
+| 1   | V2      | RF    | n_est=100, fs=False| 1.0000              | 1.0000              |
+| 2   | V2      | RF    | n_est=50, fs=False | 1.0000              | 1.0000              |
+| 3   | V2      | RF    | n_est=100, fs=True | 0.9167              | 0.9175              |
+| 4   | V2      | LR    | max_iter=1000      | 0.9722              | 0.9722              |
+| 5   | V1      | RF    | n_est=100, fs=False| 0.9500              | 0.9490              |
 
 ### Comparison & Observations
-- (Add your observations here comparing the metric changes when you adjusted hyperparameters, swapped datasets, or added feature selection)
+- V2 dataset provides better accuracy (1.0 vs 0.95). Reducing to top 5 features drastically reduces accuracy to ~0.91, showing that discarded features contain useful signal. Lowering n_estimators from 100 to 50 did not hurt RF performance on V2.
 
 ## 5. Screenshots
 *(Embed screenshots here to prove completion)*
@@ -50,22 +50,22 @@
 ## 7. Answers to Analysis Questions
 
 ### A. Run-Based Analysis
-1. Which run performed the best? Why? *(Fill in your answer based on Table)*
-2. How did dataset changes affect performance? *(V2 generally performs better due to having more data over V1)*
-3. How did hyperparameter tuning affect results? *(Did changing n_estimators from 100 to 50 drop accuracy?)*
-4. How did feature selection impact performance? *(Using top 5 features may reduce accuracy but improves inference speed)*
-5. Which run performed worst? Explain why. *(Typically V1 or Feature Selected run due to lack of info/data)*
-6. Which had greater impact: data change or parameter change? *(Answer based on your runs - usually data size has a bigger impact)*
+1. Which run performed the best? Why? Run 1 and Run 2 completely overfit/generalized perfectly to the test set, achieving 1.0 accuracy. V2 dataset with Random Forest utilizes all features sufficiently.
+2. How did dataset changes affect performance? Training with V2 (178 rows) outperformed V1 (100 rows), demonstrating that more data improves generalizability (from 0.95 up to 1.0).
+3. How did hyperparameter tuning affect results? Dropping `n_estimators` from 100 to 50 had no negative impact on V2 accuracy, both remained at 1.0.
+4. How did feature selection impact performance? Feature selection restricted to the top 5 features dropped accuracy significantly from 1.0 to roughly 0.916.
+5. Which run performed worst? Explain why. Run 3 (Feature Selection) performed worst because essential feature distributions needed classifying certain labels were discarded.
+6. Which had greater impact: data change or parameter change? Data changes (feature selection and subset V1) had a much larger impact than hyperparameter tuning (`n_estimators` swap showed no drop).
 
 ### B. Experiment Tracking
-1. How did MLflow help compare runs? *(It centralized metrics, parameters, and model artifacts without manual tracking)*
-2. What information was most useful in selecting the best model? *(Accuracy and F1 Score logs mapped against the parameters in the MLflow UI)*
+1. How did MLflow help compare runs? It centralized metrics, parameters, and automatically tracked model artifacts without manual spreadsheet tracking.
+2. What information was most useful in selecting the best model? Mapping Accuracy alongside the parameters directly in the UI allowed quick insights into what config failed.
 
 ### C. Data Versioning
-1. What differences were observed between dataset versions? *(V1 was partial with 100 rows, V2 was complete with 178 rows)*
-2. Why is data versioning critical in ML systems? *(It ensures total reproducibility. Without knowing exactly what data a model trained on, reproducing results is impossible)*
+1. What differences were observed between dataset versions? V1 was partial running with 100 rows, V2 was complete using all 178 instances causing the performance improvement.
+2. Why is data versioning critical in ML systems? It guarantees total reproducibility. If we cannot tie a specific model back to the exact data snapshot it was trained on, anomalies cannot be debugged.
 
 ### D. System Design
-1. How does your pipeline ensure reproducibility? *(Using DVC for data tracking, Git for codebase versioning, AI model tracking with MLflow, and GitHub Actions for standardized execution)*
-2. What are the limitations of your pipeline? *(Single static GitHub action without dynamic dataset ingestion, manual Docker commands instead of CI/CD docker image publisher)*
-3. How would you improve this system for production use? *(Automate Docker image building and pushing via GitHub Actions, and deploy a Remote MLflow server instead of tracking locally)*
+1. How does your pipeline ensure reproducibility? It uses DVC for strict data tracking tied to Git branches, AI tracking with MLflow for all models, and GitHub Actions for continuous testing.
+2. What are the limitations of your pipeline? The workflow does not continuously update datasets autonomously, and Docker publication is currently manual.
+3. How would you improve this system for production use? Automate Docker image building/pushing directly via GitHub Actions, and configure a remote MLflow tracking server (e.g. AWS EC2 with RDS backend) instead of local flat files.
