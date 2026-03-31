@@ -43,7 +43,7 @@ jobs:
         cat metrics.json
 
     - name: Upload Metrics Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: metrics-output
         path: metrics.json
