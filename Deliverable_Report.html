@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MLOps Assignment Final Deliverable - 2022BCS0178</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 40px; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #2980b9; margin-top: 30px; border-left: 5px solid #2980b9; padding-left: 10px; }
+        h3 { color: #34495e; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f8f9fa; color: #2c3e50; }
+        img { max-width: 100%; height: auto; border: 1px solid #ccc; margin: 20px 0; border-radius: 4px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .details-box { background: #f0f4f8; padding: 20px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #d1d9e6; }
+        .analysis-section { background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #eee; }
+        @media print {
+            body { padding: 0; }
+            .no-print { display: none; }
+            h2 { page-break-before: always; }
+        }
+    </style>
+</head>
+<body>
+    <h1>MLOps Pipeline Implementation - Final Deliverable</h1>
+
+    <div class="details-box">
+        <h3>1. Student Details</h3>
+        <ul>
+            <li><strong>Name:</strong> Thrinadh</li>
+            <li><strong>Roll Number:</strong> 2022BCS0178</li>
+        </ul>
+    </div>
+
+    <h2>2. Problem Description</h2>
+    <p><strong>Problem Statement:</strong> Multiclass Classification of the Wine dataset. The objective is to correctly classify wines into one of three different cultivars based on their chemical properties.</p>
+    <p><strong>Dataset Description:</strong>
+        <ul>
+            <li><strong>Source:</strong> sklearn wine dataset</li>
+            <li><strong>Features:</strong> 13 numeric features (alcohol, malic acid, ash, etc.)</li>
+            <li><strong>Target variable:</strong> 0, 1, 2 (representing 3 different classes of wine)</li>
+            <li><strong>Dataset size:</strong> 178 instances (V1 uses 100 instances, V2 uses all 178)</li>
+            <li><strong>Preprocessing steps:</strong> Loaded into Pandas DataFrame, Train/Test Split (80/20), optional Feature Selection (first 5 features).</li>
+        </ul>
+    </p>
+
+    <h2>3. Implementation Steps</h2>
+    <ul>
+        <li><strong>DVC + S3 Setup:</strong> Initialized DVC Using `dvc init`. Configured AWS S3 bucket as remote using `dvc remote add`.</li>
+        <li><strong>CI/CD Pipeline:</strong> Utilized GitHub Actions. The workflow `.github/workflows/mlops.yml` checks out the code, configures AWS credentials, and pulls DVC data.</li>
+        <li><strong>MLflow Integration:</strong> Used MLflow tracking in `src/train.py`. Set experiment name to `2022BCS0178_experiment`. Logged parameters and metrics.</li>
+        <li><strong>API Implementation:</strong> Produced a FastAPI app in `src/api.py`. Implemented `/health` and `/predict` endpoints.</li>
+        <li><strong>Dockerization:</strong> Wrote a Dockerfile using python:3.12-slim, exposing port 8000 via Uvicorn.</li>
+    </ul>
+
+    <h2>4. Experiment Results</h2>
+    <h3>Table of 5 runs</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Run</th>
+                <th>Dataset</th>
+                <th>Model</th>
+                <th>Key Parameters</th>
+                <th>Accuracy</th>
+                <th>F1 Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>1</td><td>V2</td><td>RF</td><td>n_est=100, fs=False</td><td>1.0000</td><td>1.0000</td></tr>
+            <tr><td>2</td><td>V2</td><td>RF</td><td>n_est=50, fs=False</td><td>1.0000</td><td>1.0000</td></tr>
+            <tr><td>3</td><td>V2</td><td>RF</td><td>n_est=100, fs=True</td><td>0.9167</td><td>0.9175</td></tr>
+            <tr><td>4</td><td>V2</td><td>LR</td><td>max_iter=1000</td><td>0.9722</td><td>0.9722</td></tr>
+            <tr><td>5</td><td>V1</td><td>RF</td><td>n_est=100, fs=False</td><td>0.9500</td><td>0.9490</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Comparison & Observations</h3>
+    <p>V2 dataset provides better accuracy (1.0 vs 0.95). Reducing to top 5 features drastically reduces accuracy to ~0.91, showing that discarded features contain useful signal. Lowering n_estimators from 100 to 50 did not hurt RF performance on V2.</p>
+
+    <h2>5. Screenshots (Roll No/Name Visible)</h2>
+    <h3>1. GitHub Repository</h3>
+    <img src="github_repo.png" alt="GitHub Repository">
+    
+    <h3>2. DVC Tracking and S3 Bucket</h3>
+    <img src="s3_bucket.png" alt="S3 Bucket Content">
+    
+    <h3>3. MLflow Tracking UI (All 5 Runs)</h3>
+    <img src="mlflow_ui.png" alt="MLflow Tracking Dashboard">
+    
+    <h3>4. API Prediction Response</h3>
+    <img src="fastapi_docs.png" alt="FastAPI Prediction Output">
+
+    <h2>6. Links</h2>
+    <ul>
+        <li><strong>GitHub repository link:</strong> https://github.com/thrinadh/2022BCS0178-mlops-assignment</li>
+        <li><strong>Docker Hub link:</strong> https://hub.docker.com/r/thrinadhprasadapu/2022BCS0178-mlops</li>
+    </ul>
+
+    <h2>7. Answers to Analysis Questions</h2>
+    <div class="analysis-section">
+        <h3>A. Run-Based Analysis</h3>
+        <p><strong>1. Which run performed the best? Why?</strong> Run 1 and 2 performed best (1.0 Accuracy). Random Forest on all features for the full Wine dataset is highly effective.</p>
+        <p><strong>2. How did dataset changes affect performance?</strong> More data (V2 vs V1) increased accuracy from 0.95 to 1.0.</p>
+        <p><strong>3. How did hyperparameter tuning affect results?</strong> Dropping trees from 100 to 50 had no negative impact on the Wine dataset.</p>
+        <p><strong>4. How did feature selection impact performance?</strong> Restricted features dropped accuracy by ~8.3% demonstrating signal loss.</p>
+
+        <h3>B. Experiment Tracking</h3>
+        <p><strong>1. How did MLflow help compare runs?</strong> It centralized metrics allowing direct comparison of parameter vs result correlation.</p>
+
+        <h3>C. Data Versioning</h3>
+        <p><strong>1. Why is data versioning critical in ML systems?</strong> It guarantees total reproducibility for auditing and debugging models.</p>
+    </div>
+
+    <div style="margin-top: 50px; text-align: center;" class="no-print">
+        <p>Created by Thrinadh - Roll No: 2022BCS0178</p>
+    </div>
+</body>
+</html>

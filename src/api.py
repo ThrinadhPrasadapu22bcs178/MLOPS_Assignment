@@ -11,15 +11,20 @@ from src.config import STUDENT_NAME, ROLL_NO, EXPERIMENT_NAME
 app = FastAPI()
 
 # Load latest model locally from mlruns
+import glob
+
 try:
     mlruns_dir = os.path.join(os.path.dirname(__file__), '..', 'mlruns')
-    mlflow.set_tracking_uri(f"file://{mlruns_dir}")
-    experiment = mlflow.get_experiment_by_name(EXPERIMENT_NAME)
-    if experiment:
-        runs = mlflow.search_runs(experiment_ids=[experiment.experiment_id], order_by=["start_time desc"], max_results=1)
-        latest_run_id = runs.iloc[0].run_id
-        model_uri = f"runs:/{latest_run_id}/model"
-        model = mlflow.sklearn.load_model(model_uri)
+    model_path = None
+    
+    # Robustly search for the model.pkl file deeply
+    for root, dirs, files in os.walk(mlruns_dir):
+        if "model.pkl" in files:
+            model_path = root
+            break
+            
+    if model_path:
+        model = mlflow.sklearn.load_model(model_path)
     else:
         model = None
 except Exception as e:
@@ -40,14 +45,15 @@ def health_check():
 
 @app.post("/predict")
 def predict(request: PredictRequest):
-    if not model:
-        return {"error": "Model not loaded properly. Have you trained the model first?"}
-        
-    df = pd.DataFrame([request.features])
-    prediction = model.predict(df)[0]
-    
-    return {
-        "Prediction": int(prediction),
-        "Name": STUDENT_NAME,
-        "Roll Number": ROLL_NO
-    }
+    if model is None:
+        return {"error": "Model not loaded properly. Have you trained it?"}
+    try:
+        df = pd.DataFrame([request.features])
+        prediction = model.predict(df)[0]
+        return {
+            "Prediction": int(prediction),
+            "Name": STUDENT_NAME,
+            "Roll Number": ROLL_NO
+        }
+    except Exception as e:
+        return {"error": str(e), "message": "Check feature count. Wine model needs 13 features."}
